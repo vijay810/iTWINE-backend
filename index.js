@@ -94,22 +94,22 @@ app.use('/teams', teamsRoutes);
 app.use('/events', eventsRoutes);
 app.use('/sms', smsRoutes)
 // PORT
-// const port = process.env.PORT || 4000;
-// app.listen(port, () => {
-//     console.log(`Server is running on port ${port}`);
-// });
+const port = process.env.PORT || 4000;
+app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+});
 
 // ❌ REMOVE app.listen (VERY IMPORTANT)
 // app.listen(port, ...);
 
-const PORT = process.env.PORT || 4000;
+// const PORT = process.env.PORT || 4000;
 
 // ✅ Start server ONLY in local
-if (process.env.NODE_ENV !== 'production') {
-    app.listen(PORT, () => {
-        console.log(`Local server running on port ${PORT}`);
-    });
-}
+// if (process.env.NODE_ENV !== 'production') {
+//     app.listen(PORT, () => {
+//         console.log(`Local server running on port ${PORT}`);
+//     });
+// }
 
 // ✅ Export app for Vercel
 module.exports = app;

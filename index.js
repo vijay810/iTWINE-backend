@@ -57,7 +57,6 @@
 
 // Run in Vercel
 
-// backend/api.js
 require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -90,6 +89,9 @@ app.use('/teams', teamsRoutes);
 app.use('/events', eventsRoutes);
 app.use('/sms', smsRoutes);
 
+// Root route for testing
+app.get('/', (req, res) => res.send('API is running'));
+
 // 404 Error
 app.use((req, res, next) => {
     res.status(404).send('Not Found');
@@ -111,7 +113,7 @@ async function connectToDatabase() {
     if (cached.conn) return cached.conn;
 
     if (!cached.promise) {
-        cached.promise = connectDB(); // your existing connectDB() function should return mongoose.connect promise
+        cached.promise = connectDB();
     }
     cached.conn = await cached.promise;
     return cached.conn;

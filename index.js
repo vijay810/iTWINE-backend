@@ -133,3 +133,8 @@ if (process.env.NODE_ENV !== 'production') {
         console.log(`Local server running on port ${PORT}`);
     });
 }
+
+/* ===============================
+   Export for Vercel
+================================ */
+module.exports = app;

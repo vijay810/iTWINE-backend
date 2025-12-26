@@ -56,35 +56,50 @@
 require('dotenv').config();
 
 const express = require('express');
-const bodyParser = require('body-parser');
 const cors = require('cors');
 const connectDB = require('./config/db');
 
 const userRoute = require('./routes/user.routes');
-const clientsRoutes = require('./routes/clients.routes')
-const authRoutes = require('./routes/auth.routes')
-const leavesRoutes = require('./routes/leave.routes')
-const newsRoutes = require('./routes/news.routes')
-const teamsRoutes = require('./routes/teams.routes')
-const eventsRoutes = require('./routes/events.routes')
-const smsRoutes = require('./routes/sms.routes')
+const clientsRoutes = require('./routes/clients.routes');
+const authRoutes = require('./routes/auth.routes');
+const leavesRoutes = require('./routes/leave.routes');
+const newsRoutes = require('./routes/news.routes');
+const teamsRoutes = require('./routes/teams.routes');
+const eventsRoutes = require('./routes/events.routes');
+const smsRoutes = require('./routes/sms.routes');
 
 const app = express();
 
-// ✅ MongoDB connection
-connectDB();
+/* ===============================
+   Middleware
+================================ */
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// ✅ Middleware
-app.use(cors({ origin: '*' }));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-
-// ✅ Root test route (IMPORTANT)
-app.get('/', (req, res) => {
-    res.send('Backend is running on Vercel ✅');
+/* ===============================
+   MongoDB per request (SAFE)
+================================ */
+app.use(async (req, res, next) => {
+    try {
+        await connectDB();
+        next();
+    } catch (err) {
+        console.error('DB Connection Error:', err.message);
+        res.status(500).json({ error: 'Database connection failed' });
+    }
 });
 
-// ✅ API Routes
+/* ===============================
+   Test Route
+================================ */
+app.get('/', (req, res) => {
+    res.send('Backend running ✅');
+});
+
+/* ===============================
+   Routes
+================================ */
 app.use('/auth', authRoutes);
 app.use('/user', userRoute);
 app.use('/clients', clientsRoutes);
@@ -92,30 +107,29 @@ app.use('/leave', leavesRoutes);
 app.use('/news', newsRoutes);
 app.use('/teams', teamsRoutes);
 app.use('/events', eventsRoutes);
-app.use('/sms', smsRoutes)
+app.use('/sms', smsRoutes);
 
-
-const PORT = process.env.PORT || 4000;
-
-// ✅ Start server ONLY in local
-if (process.env.NODE_ENV !== 'production') {
-    app.listen(PORT, () => {
-        console.log(`Local server running on port ${PORT}`);
-    });
-}
-
-// ✅ Export app for Vercel
-module.exports = app;
-
-// 404 handler
+/* ===============================
+   404 Handler
+================================ */
 app.use((req, res) => {
     res.status(404).json({ message: 'Route Not Found' });
 });
 
-// Global error handler
+/* ===============================
+   Global Error Handler
+================================ */
 app.use((err, req, res, next) => {
-    console.error(err.message);
-    res.status(err.statusCode || 500).json({
-        error: err.message
-    });
+    console.error(err);
+    res.status(500).json({ error: err.message });
 });
+
+/* ===============================
+   Local server ONLY
+================================ */
+if (process.env.NODE_ENV !== 'production') {
+    const PORT = process.env.PORT || 4000;
+    app.listen(PORT, () => {
+        console.log(`Local server running on port ${PORT}`);
+    });
+}

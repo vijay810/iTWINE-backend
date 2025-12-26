@@ -105,6 +105,28 @@ router.post('/login', async (req, res) => {
 // });
 
 // verify-token.js (keep in same file or modularize)
+// router.get('/verify-token', (req, res) => {
+//     const token = req.headers['authorization']?.split(' ')[1];
+//     if (!token) {
+//         return res.status(401).json({ msg: 'No token provided' });
+//     }
+
+//     jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+//         if (err) {
+//             return res.status(401).json({ msg: 'Token is not valid or has expired' });
+//         }
+
+//         // Re-issue token with 5 more minutes
+//         const newToken = jwt.sign(
+//             { user: decoded.user },
+//             process.env.JWT_SECRET,
+//             { expiresIn: '5m' }
+//         );
+
+//         res.json({ msg: 'Token is valid', token: newToken });
+//     });
+// });
+
 router.get('/verify-token', (req, res) => {
     const token = req.headers['authorization']?.split(' ')[1];
     if (!token) {
@@ -113,10 +135,10 @@ router.get('/verify-token', (req, res) => {
 
     jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
         if (err) {
-            return res.status(401).json({ msg: 'Token is not valid or has expired' });
+            return res.status(401).json({ msg: 'Token expired' });
         }
 
-        // Re-issue token with 5 more minutes
+        // Refresh token (sliding expiration)
         const newToken = jwt.sign(
             { user: decoded.user },
             process.env.JWT_SECRET,
@@ -126,6 +148,7 @@ router.get('/verify-token', (req, res) => {
         res.json({ msg: 'Token is valid', token: newToken });
     });
 });
+
 
 
 

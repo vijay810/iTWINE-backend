@@ -3,22 +3,57 @@ let mongoose = require("mongoose"),
     router = express.Router();
 // Leave Model
 let leaveSchema = require('../Models/Leave');
+let leaveMail = require('../Utils/leaveMail')
 
 // CREATE Leave
+// router.route("/create-leave").post(async (req, res, next) => {
+//     await leaveSchema
+//         .create(req.body)
+//         .then((result) => {
+//             res.json({
+//                 data: result,
+//                 message: "Leave successfully submited!",
+//                 status: 200,
+//             });
+//         })
+//         .catch((err) => {
+//             return next(err);
+//         });
+// });
+
 router.route("/create-leave").post(async (req, res, next) => {
-    await leaveSchema
-        .create(req.body)
-        .then((result) => {
-            res.json({
-                data: result,
-                message: "Leave successfully submited!",
-                status: 200,
+    try {
+        const result = await leaveSchema.create(req.body);
+
+        // SEND EMAIL
+        if (req.body.email) {
+            await leaveMail({
+                to: req.body.email,
+                subject: "SMS Created Successfully",
+                html: `
+                    <h3>iTWINE-Vijay</h3>
+                    <p><b>Dear</b>$ ${req.body.fname} ${req.body.lname}</p>
+                    <p><b>Date</b> ${req.body.formdate}-${req.body.formdate}</p>
+                    <p><b>Department</b> ${req.body.dep}</p>
+                    <p><b>Reason</b> ${req.body.reason}</p>
+                   <p><b>Congratualation:</b> ${ req.body.status == 1 ? "Rejected" : req.body.status == 2 ? "Approved" : "Pending" }</p>
+
+                `
             });
-        })
-        .catch((err) => {
-            return next(err);
+        }
+
+        res.json({
+            data: result,
+            message: "Leave Created successfully & Email Sent!",
+            status: 200,
         });
+
+    } catch (err) {
+        return next(err);
+    }
 });
+
+
 router.route("/").get(async (req, res, next) => {
     await leaveSchema
         .find()

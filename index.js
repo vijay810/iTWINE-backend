@@ -13,6 +13,7 @@ const leavesRoutes = require('./routes/leave.routes')
 const newsRoutes = require('./routes/news.routes')
 const teamsRoutes = require('./routes/teams.routes')
 const eventsRoutes = require('./routes/events.routes')
+const smsRoutes = require('./routes/sms.routes')
 
 const app = express();
 
@@ -30,8 +31,9 @@ app.use('/user', userRoute);
 app.use('/clients', clientsRoutes);
 app.use('/leave', leavesRoutes);
 app.use('/news', newsRoutes);
-app.use('/teams', teamsRoutes)
-app.use('/events', eventsRoutes)
+app.use('/teams', teamsRoutes);
+app.use('/events', eventsRoutes);
+app.use('/sms', smsRoutes)
 // PORT
 const port = process.env.PORT || 4000;
 app.listen(port, () => {

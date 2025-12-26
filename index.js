@@ -95,6 +95,15 @@ app.use('/events', eventsRoutes);
 // ❌ REMOVE app.listen (VERY IMPORTANT)
 // app.listen(port, ...);
 
+const PORT = process.env.PORT || 4000;
+
+// ✅ Start server ONLY in local
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(PORT, () => {
+        console.log(`Local server running on port ${PORT}`);
+    });
+}
+
 // ✅ Export app for Vercel
 module.exports = app;
 

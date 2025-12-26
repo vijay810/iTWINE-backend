@@ -51,8 +51,7 @@
 // });
 
 
-
-// using vercel ---/
+// Running on vercel
 
 require('dotenv').config();
 

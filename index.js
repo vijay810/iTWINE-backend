@@ -35,10 +35,10 @@ app.use('/teams', teamsRoutes)
 app.use('/events', eventsRoutes)
 app.use('/sms', smsRoutes)
 // PORT
-const port = process.env.PORT || 4000;
-app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
-});
+// const port = process.env.PORT || 4000;
+// app.listen(port, () => {
+//     console.log(`Server is running on port ${port}`);
+// });
 
 
 // 404 Error

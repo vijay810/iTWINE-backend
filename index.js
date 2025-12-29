@@ -55,7 +55,6 @@
 
 
 require("dotenv").config();
-
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
@@ -73,43 +72,17 @@ const smsRoutes = require("./routes/sms.routes");
 
 const app = express();
 
-/* =========================
-   GLOBAL ERROR LISTENERS
-========================= */
-process.on("uncaughtException", (err) => {
-    console.error("UNCAUGHT EXCEPTION:", err);
-});
-
-process.on("unhandledRejection", (err) => {
-    console.error("UNHANDLED REJECTION:", err);
-});
-
-/* =========================
-   DATABASE CONNECTION
-========================= */
-connectDB()
-    .then(() => console.log("MongoDB connected successfully"))
-    .catch((err) => {
-        console.error("MongoDB connection failed:", err.message);
-    });
-
-/* =========================
-   MIDDLEWARE
-========================= */
+// Middleware
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-/* =========================
-   ROUTES
-========================= */
+// Health check route
 app.get("/", (req, res) => {
-    res.status(200).json({
-        status: "OK",
-        message: "Backend running successfully",
-    });
+    res.status(200).json({ status: "OK", message: "Backend running" });
 });
 
+// API routes
 app.use("/auth", authRoutes);
 app.use("/user", userRoute);
 app.use("/clients", clientsRoutes);
@@ -119,34 +92,37 @@ app.use("/teams", teamsRoutes);
 app.use("/events", eventsRoutes);
 app.use("/sms", smsRoutes);
 
-/* =========================
-   404 HANDLER
-========================= */
-app.use((req, res) => {
-    res.status(404).json({ message: "Route Not Found" });
-});
+// 404 handler
+app.use((req, res) => res.status(404).json({ message: "Route Not Found" }));
 
-/* =========================
-   GLOBAL ERROR HANDLER
-========================= */
+// Global error handler
 app.use((err, req, res, next) => {
     console.error(err.stack);
-    res.status(err.statusCode || 500).json({
-        message: err.message || "Internal Server Error",
-    });
+    res.status(err.statusCode || 500).json({ message: err.message || "Internal Server Error" });
 });
 
 /* =========================
-   LOCAL SERVER ONLY (DEV)
+   LOCAL DEV ONLY
 ========================= */
 if (process.env.NODE_ENV !== "production") {
     const PORT = process.env.PORT || 4000;
-    app.listen(PORT, () => {
-        console.log(`Server running on port ${PORT}`);
-    });
+    connectDB()
+        .then(() => {
+            console.log("MongoDB Connected");
+            app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+        })
+        .catch((err) => console.error("MongoDB connection error:", err));
 }
 
 /* =========================
    EXPORT FOR VERCEL
 ========================= */
-module.exports = app;
+module.exports = async (req, res) => {
+    try {
+        await connectDB(); // connect once per function
+        return app(req, res);
+    } catch (err) {
+        console.error("MongoDB error:", err);
+        res.status(500).json({ message: "Database connection failed" });
+    }
+};

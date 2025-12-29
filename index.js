@@ -59,7 +59,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const connectDB = require('./config/db');
-const serverless = require('serverless-http');
+const serverless = require('serverless-http'); // wrap for Vercel
+
 const userRoute = require('./routes/user.routes');
 const clientsRoutes = require('./routes/clients.routes');
 const authRoutes = require('./routes/auth.routes');
@@ -100,14 +101,12 @@ app.use((err, req, res, next) => {
     res.status(err.statusCode || 500).send(err.message);
 });
 
-// **Conditional listen**
+// ----------------------
+// Local development
 if (process.env.NODE_ENV !== 'production') {
-    // Local development
     const port = process.env.PORT || 4000;
-    app.listen(port, () => {
-        console.log(`Server running on port ${port}`);
-    });
+    app.listen(port, () => console.log(`Server running on port ${port}`));
 }
 
-// Export for Vercel (production)
-module.exports = app;
+// Export for Vercel serverless
+module.exports = serverless(app);

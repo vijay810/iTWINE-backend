@@ -74,11 +74,24 @@ const smsRoutes = require("./routes/sms.routes");
 const app = express();
 
 /* =========================
-   DATABASE
+   GLOBAL ERROR LISTENERS
 ========================= */
-connectDB().catch((err) => {
-    console.error("DB connection failed:", err.message);
+process.on("uncaughtException", (err) => {
+    console.error("UNCAUGHT EXCEPTION:", err);
 });
+
+process.on("unhandledRejection", (err) => {
+    console.error("UNHANDLED REJECTION:", err);
+});
+
+/* =========================
+   DATABASE CONNECTION
+========================= */
+connectDB()
+    .then(() => console.log("MongoDB connected successfully"))
+    .catch((err) => {
+        console.error("MongoDB connection failed:", err.message);
+    });
 
 /* =========================
    MIDDLEWARE
@@ -93,7 +106,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.get("/", (req, res) => {
     res.status(200).json({
         status: "OK",
-        message: "Backend running successfully on Vercel",
+        message: "Backend running successfully",
     });
 });
 
@@ -107,12 +120,15 @@ app.use("/events", eventsRoutes);
 app.use("/sms", smsRoutes);
 
 /* =========================
-   ERROR HANDLING
+   404 HANDLER
 ========================= */
 app.use((req, res) => {
     res.status(404).json({ message: "Route Not Found" });
 });
 
+/* =========================
+   GLOBAL ERROR HANDLER
+========================= */
 app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(err.statusCode || 500).json({
@@ -121,7 +137,7 @@ app.use((err, req, res, next) => {
 });
 
 /* =========================
-   LOCAL SERVER ONLY
+   LOCAL SERVER ONLY (DEV)
 ========================= */
 if (process.env.NODE_ENV !== "production") {
     const PORT = process.env.PORT || 4000;

@@ -54,75 +54,83 @@
 
 
 
+require("dotenv").config();
 
-// Run in Vercel
+const express = require("express");
+const bodyParser = require("body-parser");
+const cors = require("cors");
+const connectDB = require("./config/db");
 
-require('dotenv').config();
-const express = require('express');
-const bodyParser = require('body-parser');
-const cors = require('cors');
-const connectDB = require('./config/db');
-
-const userRoute = require('./routes/user.routes');
-const clientsRoutes = require('./routes/clients.routes');
-const authRoutes = require('./routes/auth.routes');
-const leavesRoutes = require('./routes/leave.routes');
-const newsRoutes = require('./routes/news.routes');
-const teamsRoutes = require('./routes/teams.routes');
-const eventsRoutes = require('./routes/events.routes');
-const smsRoutes = require('./routes/sms.routes');
+// Routes
+const userRoute = require("./routes/user.routes");
+const clientsRoutes = require("./routes/clients.routes");
+const authRoutes = require("./routes/auth.routes");
+const leavesRoutes = require("./routes/leave.routes");
+const newsRoutes = require("./routes/news.routes");
+const teamsRoutes = require("./routes/teams.routes");
+const eventsRoutes = require("./routes/events.routes");
+const smsRoutes = require("./routes/sms.routes");
 
 const app = express();
 
-// Middleware
+/* =========================
+   DATABASE
+========================= */
+connectDB().catch((err) => {
+    console.error("DB connection failed:", err.message);
+});
+
+/* =========================
+   MIDDLEWARE
+========================= */
+app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cors());
 
-// Routes
-app.use('/auth', authRoutes);
-app.use('/user', userRoute);
-app.use('/clients', clientsRoutes);
-app.use('/leave', leavesRoutes);
-app.use('/news', newsRoutes);
-app.use('/teams', teamsRoutes);
-app.use('/events', eventsRoutes);
-app.use('/sms', smsRoutes);
-
-// Root route for testing
-app.get('/', (req, res) => res.send('API is running'));
-
-// 404 Error
-app.use((req, res, next) => {
-    res.status(404).send('Not Found');
+/* =========================
+   ROUTES
+========================= */
+app.get("/", (req, res) => {
+    res.status(200).json({
+        status: "OK",
+        message: "Backend running successfully on Vercel",
+    });
 });
 
-// Global Error Handler
+app.use("/auth", authRoutes);
+app.use("/user", userRoute);
+app.use("/clients", clientsRoutes);
+app.use("/leave", leavesRoutes);
+app.use("/news", newsRoutes);
+app.use("/teams", teamsRoutes);
+app.use("/events", eventsRoutes);
+app.use("/sms", smsRoutes);
+
+/* =========================
+   ERROR HANDLING
+========================= */
+app.use((req, res) => {
+    res.status(404).json({ message: "Route Not Found" });
+});
+
 app.use((err, req, res, next) => {
-    console.error(err.message);
-    res.status(err.statusCode || 500).send(err.message);
+    console.error(err.stack);
+    res.status(err.statusCode || 500).json({
+        message: err.message || "Internal Server Error",
+    });
 });
 
-/**
- * Serverless MongoDB connection
- */
-let cached = global.mongoose;
-if (!cached) cached = global.mongoose = { conn: null, promise: null };
-
-async function connectToDatabase() {
-    if (cached.conn) return cached.conn;
-
-    if (!cached.promise) {
-        cached.promise = connectDB();
-    }
-    cached.conn = await cached.promise;
-    return cached.conn;
+/* =========================
+   LOCAL SERVER ONLY
+========================= */
+if (process.env.NODE_ENV !== "production") {
+    const PORT = process.env.PORT || 4000;
+    app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+    });
 }
 
-/**
- * Vercel Serverless Handler
- */
-module.exports = async (req, res) => {
-    await connectToDatabase();
-    return app(req, res);
-};
+/* =========================
+   EXPORT FOR VERCEL
+========================= */
+module.exports = app;

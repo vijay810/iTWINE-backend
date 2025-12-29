@@ -5,6 +5,14 @@ let mongoose = require("mongoose"),
 let leaveSchema = require('../Models/Leave');
 let leaveMail = require('../Utils/leaveMail')
 
+const formatDate = (date) => {
+    if (!date) return "";
+    return new Date(date)
+        .toLocaleDateString("en-GB")
+        .replace(/\//g, "-"); // dd-mm-yyyy
+};
+
+
 // CREATE Leave
 // router.route("/create-leave").post(async (req, res, next) => {
 //     await leaveSchema
@@ -25,26 +33,35 @@ router.route("/create-leave").post(async (req, res, next) => {
     try {
         const result = await leaveSchema.create(req.body);
 
-        // SEND EMAIL
-        if (req.body.email) {
+        // 📧 SEND EMAIL
+        if (result.email) {
             await leaveMail({
-                to: req.body.email,
-                subject: "SMS Created Successfully",
+                to: result.email,
+                subject: "Leave Request Submitted",
                 html: `
-                    <h3>iTWINE-Vijay</h3>
-                    <p><b>Dear</b>$ ${req.body.fname} ${req.body.lname}</p>
-                    <p><b>Date</b> ${req.body.formdate}-${req.body.formdate}</p>
-                    <p><b>Department</b> ${req.body.dep}</p>
-                    <p><b>Reason</b> ${req.body.reason}</p>
-                   <p><b>Congratualation:</b> ${ req.body.status == 1 ? "Rejected" : req.body.status == 2 ? "Approved" : "Pending" }</p>
+                    <h3>iTWINE - Vijay</h3>
+                    <p><b>Dear</b> ${result.fname} ${result.lname},</p>
 
+                    <p>Your leave request has been submitted successfully.</p>
+
+                    <p><b>From Date:</b>  ${formatDate(result.formdate)}</p>
+                    <p><b>To Date:</b>  ${formatDate(result.todate)}</p>
+                    <p><b>Department:</b> ${result.dep}</p>
+                    <p><b>Reason:</b> ${result.reason}</p>
+
+                    <p><b>Status:</b> ${result.status === 1
+                        ? "Rejected"
+                        : result.status === 2
+                            ? "Approved"
+                            : "Pending"
+                    }</p>
                 `
             });
         }
 
         res.json({
             data: result,
-            message: "Leave Created successfully & Email Sent!",
+            message: "Leave created successfully & email sent!",
             status: 200,
         });
 
@@ -70,6 +87,34 @@ router.route("/").get(async (req, res, next) => {
         });
 });
 // Update Leave Status
+// router.route("/update-status/:id").put(async (req, res, next) => {
+//     const leaveId = req.params.id;
+//     const { status } = req.body;
+
+//     try {
+//         const updatedLeave = await leaveSchema.findByIdAndUpdate(
+//             leaveId,
+//             { status: status },
+//             { new: true }
+//         );
+
+//         if (!updatedLeave) {
+//             return res.status(404).json({
+//                 message: "Leave not found",
+//                 status: 404,
+//             });
+//         }
+
+//         res.json({
+//             data: updatedLeave,
+//             message: "Leave status successfully updated",
+//             status: 200,
+//         });
+//     } catch (err) {
+//         return next(err);
+//     }
+// });
+
 router.route("/update-status/:id").put(async (req, res, next) => {
     const leaveId = req.params.id;
     const { status } = req.body;
@@ -77,7 +122,7 @@ router.route("/update-status/:id").put(async (req, res, next) => {
     try {
         const updatedLeave = await leaveSchema.findByIdAndUpdate(
             leaveId,
-            { status: status },
+            { status },
             { new: true }
         );
 
@@ -88,15 +133,53 @@ router.route("/update-status/:id").put(async (req, res, next) => {
             });
         }
 
+        // ✅ MAIL SHOULD NOT BREAK UPDATE
+        if (updatedLeave.email) {
+            try {
+                console.log("📧 Sending mail to:", updatedLeave.email);
+
+                await leaveMail({
+                    to: updatedLeave.email,
+                    subject: "Leave Status Updated",
+                    html: `
+                        <h3>iTWINE - Vijay</h3>
+                        <p>Dear ${updatedLeave.fname} ${updatedLeave.lname},</p>
+                        <p>Your leave status has been updated.</p>
+                        <p><b>From Date:</b> ${formatDate(updatedLeave.formdate)}</p>
+                    <p><b>To Date:</b> ${formatDate(updatedLeave.todate)}</p>
+                    <p><b>Department:</b> ${updatedLeave.dep}</p>
+                    <p><b>Reason:</b> ${updatedLeave.reason}</p>
+                        <p><b>Status:</b> ${status == 1
+                            ? "Rejected"
+                            : status == 2
+                                ? "Approved"
+                                : "Pending"
+                        }</p>
+                    `
+                });
+
+                console.log("✅ Mail sent successfully");
+            } catch (mailErr) {
+                console.error("❌ Mail error:", mailErr.message);
+            }
+        } else {
+            console.log("⚠️ Email not found in DB");
+        }
+
         res.json({
             data: updatedLeave,
-            message: "Leave status successfully updated",
+            message: "Leave status updated successfully",
             status: 200,
         });
+
     } catch (err) {
         return next(err);
     }
 });
+
+
+
+
 
 
 // I want matching userid data only

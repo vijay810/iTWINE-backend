@@ -9,7 +9,7 @@ const transporter = nodemailer.createTransport({
 });
 
 const leaveMail = async ({ to, subject, html }) => {
-    return transporter.leaveMail({
+    return transporter.sendMail({   // ✅ FIX HERE
         from: `"iTWINE-Vijay" <${process.env.MAIL_USER}>`,
         to,
         subject,

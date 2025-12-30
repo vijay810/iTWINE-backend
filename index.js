@@ -76,7 +76,7 @@ const app = express();
 /* =======================
    MongoDB Connection
 ======================= */
-// connectDB();
+connectDB();
 
 /* =======================
    Middleware

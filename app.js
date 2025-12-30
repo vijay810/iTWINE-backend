@@ -21,20 +21,12 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-/* DB connection (serverless safe) */
-app.use(async (req, res, next) => {
-    try {
-        await connectDB();
-        next();
-    } catch (err) {
-        console.error('DB connection failed:', err.message);
-        return res.status(500).json({ message: 'Database connection failed' });
-    }
-});
+/* DB connection (safe for serverless + local) */
+connectDB();
 
 /* Health check */
 app.get('/', (req, res) => {
-    res.status(200).json({ status: 'Backend is running' });
+    res.status(200).json({ message: 'Backend is running 🚀' });
 });
 
 /* Routes */
@@ -49,7 +41,15 @@ app.use('/sms', smsRoutes);
 
 /* 404 */
 app.use((req, res) => {
-    res.status(404).json({ message: 'Not Found' });
+    res.status(404).json({ message: 'Route not found' });
 });
 
-module.exports = app;
+/* Global error handler */
+app.use((err, req, res, next) => {
+    console.error('❌ Error:', err.message);
+    res.status(err.statusCode || 500).json({
+        message: err.message || 'Internal Server Error'
+    });
+});
+
+module.exports = app;   // 🔥 IMPORTANT

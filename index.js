@@ -52,17 +52,14 @@
 
 
 // Running on vercel
-// Load env ONLY for local development
-if (process.env.NODE_ENV !== 'production') {
-    require('dotenv').config({ path: './.env' });
-}
+
+require('dotenv').config();
 
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const connectDB = require('./config/db');
 
-// Routes
 const userRoute = require('./routes/user.routes');
 const clientsRoutes = require('./routes/clients.routes');
 const authRoutes = require('./routes/auth.routes');
@@ -73,28 +70,20 @@ const eventsRoutes = require('./routes/events.routes');
 
 const app = express();
 
-/* =======================
-   MongoDB Connection
-======================= */
+// ✅ MongoDB connection
 connectDB();
 
-/* =======================
-   Middleware
-======================= */
+// ✅ Middleware
 app.use(cors({ origin: '*' }));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-/* =======================
-   Health Check
-======================= */
+// ✅ Root test route (IMPORTANT)
 app.get('/', (req, res) => {
-    res.status(200).send('Backend running on Vercel ✅');
+    res.send('Backend is running on Vercel ✅');
 });
 
-/* =======================
-   API Routes
-======================= */
+// ✅ API Routes
 app.use('/auth', authRoutes);
 app.use('/user', userRoute);
 app.use('/clients', clientsRoutes);
@@ -103,34 +92,30 @@ app.use('/news', newsRoutes);
 app.use('/teams', teamsRoutes);
 app.use('/events', eventsRoutes);
 
-/* =======================
-   404 Handler
-======================= */
-app.use((req, res) => {
-    res.status(404).json({ message: 'Route Not Found' });
-});
+// ❌ REMOVE app.listen (VERY IMPORTANT)
+// app.listen(port, ...);
 
-/* =======================
-   Global Error Handler
-======================= */
-app.use((err, req, res, next) => {
-    console.error(err);
-    res.status(err.statusCode || 500).json({
-        error: err.message || 'Internal Server Error'
-    });
-});
+const PORT = process.env.PORT || 4000;
 
-/* =======================
-   Local Server Only
-======================= */
+// ✅ Start server ONLY in local
 if (process.env.NODE_ENV !== 'production') {
-    const PORT = process.env.PORT || 4000;
     app.listen(PORT, () => {
         console.log(`Local server running on port ${PORT}`);
     });
 }
 
-/* =======================
-   Export for Vercel
-======================= */
+// ✅ Export app for Vercel
 module.exports = app;
+
+// 404 handler
+app.use((req, res) => {
+    res.status(404).json({ message: 'Route Not Found' });
+});
+
+// Global error handler
+app.use((err, req, res, next) => {
+    console.error(err.message);
+    res.status(err.statusCode || 500).json({
+        error: err.message
+    });
+});

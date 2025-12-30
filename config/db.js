@@ -21,6 +21,7 @@ const connectDB = async () => {
         throw new Error('MONGO_URL is not defined');
     }
 
+    // Prevent multiple connections in serverless
     if (mongoose.connection.readyState >= 1) return;
 
     try {
@@ -33,3 +34,4 @@ const connectDB = async () => {
 };
 
 module.exports = connectDB;
+

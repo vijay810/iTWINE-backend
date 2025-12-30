@@ -52,16 +52,17 @@
 
 
 // Running on vercel
+// Load env ONLY for local development
 if (process.env.NODE_ENV !== 'production') {
     require('dotenv').config({ path: './.env' });
 }
-
 
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const connectDB = require('./config/db');
 
+// Routes
 const userRoute = require('./routes/user.routes');
 const clientsRoutes = require('./routes/clients.routes');
 const authRoutes = require('./routes/auth.routes');
@@ -92,7 +93,7 @@ app.get('/', (req, res) => {
 });
 
 /* =======================
-   Routes
+   API Routes
 ======================= */
 app.use('/auth', authRoutes);
 app.use('/user', userRoute);
@@ -110,7 +111,7 @@ app.use((req, res) => {
 });
 
 /* =======================
-   Error Handler
+   Global Error Handler
 ======================= */
 app.use((err, req, res, next) => {
     console.error(err);
@@ -120,7 +121,16 @@ app.use((err, req, res, next) => {
 });
 
 /* =======================
-   EXPORT FOR VERCEL
+   Local Server Only
+======================= */
+if (process.env.NODE_ENV !== 'production') {
+    const PORT = process.env.PORT || 4000;
+    app.listen(PORT, () => {
+        console.log(`Local server running on port ${PORT}`);
+    });
+}
+
+/* =======================
+   Export for Vercel
 ======================= */
 module.exports = app;
-

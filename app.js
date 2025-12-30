@@ -14,7 +14,6 @@ const teamsRoutes = require('./routes/teams.routes');
 const eventsRoutes = require('./routes/events.routes');
 const smsRoutes = require('./routes/sms.routes');
 
-
 const app = express();
 
 /* Middleware */
@@ -22,26 +21,21 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-/* DB connection (lazy & cached) */
+/* DB connection (serverless safe) */
 app.use(async (req, res, next) => {
     try {
         await connectDB();
         next();
     } catch (err) {
-        console.error('DB connection failed', err.message);
-        res.status(500).json({ message: 'Database connection failed' });
+        console.error('DB connection failed:', err.message);
+        return res.status(500).json({ message: 'Database connection failed' });
     }
 });
 
-
-
 /* Health check */
-// app.get('/', (req, res) => {
-//     res.json({ status: 'Backend is running' });
-// });
-
-app.get('/', (req, res) => res.json({ status: 'Backend is running' }));
-
+app.get('/', (req, res) => {
+    res.status(200).json({ status: 'Backend is running' });
+});
 
 /* Routes */
 app.use('/auth', authRoutes);

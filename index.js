@@ -119,3 +119,6 @@ app.use((err, req, res, next) => {
         error: err.message
     });
 });
+
+
+module.exports = app;

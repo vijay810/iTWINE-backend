@@ -12,29 +12,20 @@
 
 // module.exports = connectDB;
 
-
-
-// config/db.js
 const mongoose = require('mongoose');
 
-let cached = global.mongoose;
-
-if (!cached) cached = global.mongoose = { conn: null, promise: null };
-
 const connectDB = async () => {
-    if (cached.conn) return cached.conn;
-
-    if (!cached.promise) {
-        cached.promise = mongoose.connect(process.env.MONGO_URI, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true
-        }).then(mongoose => mongoose);
+    if (!process.env.MONGO_URI) {
+        throw new Error('MONGO_URI is not defined');
     }
 
-    cached.conn = await cached.promise;
-    console.log(`Connected to Mongo! Database name: "${cached.conn.connections[0].name}"`);
-    return cached.conn;
+    try {
+        await mongoose.connect(process.env.MONGO_URI);
+        console.log('MongoDB connected');
+    } catch (error) {
+        console.error('Error connecting to mongo', error.message);
+        process.exit(1);
+    }
 };
 
 module.exports = connectDB;
-

@@ -52,8 +52,10 @@
 
 
 // Running on vercel
+if (process.env.NODE_ENV !== 'production') {
+    require('dotenv').config({ path: './.env' });
+}
 
-require('dotenv').config();
 
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -70,20 +72,28 @@ const eventsRoutes = require('./routes/events.routes');
 
 const app = express();
 
-// ✅ MongoDB connection
+/* =======================
+   MongoDB Connection
+======================= */
 connectDB();
 
-// ✅ Middleware
+/* =======================
+   Middleware
+======================= */
 app.use(cors({ origin: '*' }));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// ✅ Root test route (IMPORTANT)
+/* =======================
+   Health Check
+======================= */
 app.get('/', (req, res) => {
-    res.send('Backend is running on Vercel ✅');
+    res.status(200).send('Backend running on Vercel ✅');
 });
 
-// ✅ API Routes
+/* =======================
+   Routes
+======================= */
 app.use('/auth', authRoutes);
 app.use('/user', userRoute);
 app.use('/clients', clientsRoutes);
@@ -92,33 +102,25 @@ app.use('/news', newsRoutes);
 app.use('/teams', teamsRoutes);
 app.use('/events', eventsRoutes);
 
-// ❌ REMOVE app.listen (VERY IMPORTANT)
-// app.listen(port, ...);
-
-const PORT = process.env.PORT || 4000;
-
-// ✅ Start server ONLY in local
-if (process.env.NODE_ENV !== 'production') {
-    app.listen(PORT, () => {
-        console.log(`Local server running on port ${PORT}`);
-    });
-}
-
-// ✅ Export app for Vercel
-module.exports = app;
-
-// 404 handler
+/* =======================
+   404 Handler
+======================= */
 app.use((req, res) => {
     res.status(404).json({ message: 'Route Not Found' });
 });
 
-// Global error handler
+/* =======================
+   Error Handler
+======================= */
 app.use((err, req, res, next) => {
-    console.error(err.message);
+    console.error(err);
     res.status(err.statusCode || 500).json({
-        error: err.message
+        error: err.message || 'Internal Server Error'
     });
 });
 
-
+/* =======================
+   EXPORT FOR VERCEL
+======================= */
 module.exports = app;
+

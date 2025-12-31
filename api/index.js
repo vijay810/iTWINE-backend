@@ -89,10 +89,10 @@ const handler = serverless(app);
 
 module.exports = async (req, res) => {
    try {
-      await connectDB(); // Ensure DB is connected for serverless
-      return handler(req, res);
+      await connectDB(); // ensures DB connection
+      return handler(req, res); // serverless handler
    } catch (err) {
-      console.error('❌ Serverless Function Error:', err.message);
+      console.error(err);
       res.status(500).json({ message: 'Internal Server Error' });
    }
 };

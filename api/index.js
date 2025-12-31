@@ -19,7 +19,7 @@ const app = express();
 /* =======================
    Database Connection
 ======================= */
-connectDB(); // ✅ OK for both local + vercel
+connectDB(); // ✅ Works for both local + Vercel
 
 /* =======================
    Middleware
@@ -65,7 +65,7 @@ app.use((err, req, res, next) => {
 });
 
 /* =======================
-   START SERVER (LOCAL ONLY)
+   LOCAL SERVER (for dev)
 ======================= */
 if (process.env.NODE_ENV !== 'production') {
    const PORT = process.env.PORT || 4000;
@@ -75,6 +75,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 /* =======================
-   EXPORT FOR VERCEL
+   EXPORT FOR VERCEL SERVERLESS
 ======================= */
-module.exports = app;
+const serverless = require('serverless-http');
+module.exports = serverless(app);

@@ -3,16 +3,16 @@ require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const connectDB = require('./config/db');
+const connectDB = require('../config/db');
 
-const userRoute = require('./routes/user.routes');
-const clientsRoutes = require('./routes/clients.routes');
-const authRoutes = require('./routes/auth.routes');
-const leavesRoutes = require('./routes/leave.routes');
-const newsRoutes = require('./routes/news.routes');
-const teamsRoutes = require('./routes/teams.routes');
-const eventsRoutes = require('./routes/events.routes');
-const smsRoutes = require('./routes/sms.routes');
+const userRoute = require('../routes/user.routes');
+const clientsRoutes = require('../routes/clients.routes');
+const authRoutes = require('../routes/auth.routes');
+const leavesRoutes = require('../routes/leave.routes');
+const newsRoutes = require('../routes/news.routes');
+const teamsRoutes = require('../routes/teams.routes');
+const eventsRoutes = require('../routes/events.routes');
+const smsRoutes = require('../routes/sms.routes');
 
 const app = express();
 
@@ -72,4 +72,6 @@ const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
     console.log(`✅ Server running on port ${PORT}`);
 });
+
+
 module.exports = app;

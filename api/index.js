@@ -63,13 +63,13 @@ const connectDB = async () => {
    if (isConnected) return;
    if (!process.env.MONGO_URL) throw new Error('MONGO_URL not defined');
 
-   await mongoose.connect(process.env.MONGO_URL); // Modern Mongoose v6+ connection
+   await mongoose.connect(process.env.MONGO_URL); // modern Mongoose v6+ connection
    isConnected = true;
    console.log('✅ MongoDB connected');
 };
 
 /* =======================
-   Local Development Server
+   Local Dev Server
 ======================= */
 if (process.env.NODE_ENV !== 'production') {
    connectDB()
@@ -79,13 +79,11 @@ if (process.env.NODE_ENV !== 'production') {
             console.log(`✅ Server running locally on port ${PORT}`);
          });
       })
-      .catch(err => {
-         console.error('❌ MongoDB connection error:', err.message);
-      });
+      .catch(err => console.error('❌ MongoDB connection error:', err.message));
 }
 
 /* =======================
-   Serverless Export for Vercel
+   Serverless Export (Vercel)
 ======================= */
 const handler = serverless(app);
 

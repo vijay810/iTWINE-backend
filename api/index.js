@@ -1,8 +1,8 @@
 require('dotenv').config();
-
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const serverless = require('serverless-http');
 const connectDB = require('../config/db');
 
 const userRoute = require('../routes/user.routes');
@@ -16,28 +16,27 @@ const smsRoutes = require('../routes/sms.routes');
 
 const app = express();
 
-/* =======================
-   Database Connection
-======================= */
-connectDB(); // ✅ Works for both local + Vercel
+/* Connect to MongoDB */
+(async () => {
+   try {
+      await connectDB();
+      console.log('✅ MongoDB connected');
+   } catch (err) {
+      console.error('❌ MongoDB connection error:', err.message);
+   }
+})();
 
-/* =======================
-   Middleware
-======================= */
+/* Middleware */
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-/* =======================
-   Health Check
-======================= */
+/* Health Check */
 app.get('/', (req, res) => {
    res.status(200).json({ message: 'Backend is running 🚀' });
 });
 
-/* =======================
-   Routes
-======================= */
+/* Routes */
 app.use('/auth', authRoutes);
 app.use('/user', userRoute);
 app.use('/clients', clientsRoutes);
@@ -47,16 +46,12 @@ app.use('/teams', teamsRoutes);
 app.use('/events', eventsRoutes);
 app.use('/sms', smsRoutes);
 
-/* =======================
-   404 Handler
-======================= */
+/* 404 Handler */
 app.use((req, res) => {
    res.status(404).json({ message: 'Route not found' });
 });
 
-/* =======================
-   Error Handler
-======================= */
+/* Error Handler */
 app.use((err, req, res, next) => {
    console.error('❌ Error:', err);
    res.status(err.statusCode || 500).json({
@@ -64,19 +59,4 @@ app.use((err, req, res, next) => {
    });
 });
 
-/* =======================
-   LOCAL SERVER (for dev)
-======================= */
-if (process.env.NODE_ENV !== 'production') {
-   const PORT = process.env.PORT || 4000;
-   app.listen(PORT, () => {
-      console.log(`✅ Server running locally on port ${PORT}`);
-   });
-}
-
-/* =======================
-   EXPORT FOR VERCEL SERVERLESS
-======================= */
-const serverless = require('serverless-http');
 module.exports = serverless(app);
-

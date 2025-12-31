@@ -2,8 +2,8 @@ require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const mongoose = require('mongoose');
 const serverless = require('serverless-http');
-const connectDB = require('../config/db');
 
 const app = express();
 
@@ -25,23 +25,14 @@ app.get('/', (req, res) => {
    Routes
 ======================= */
 try {
-   const authRoutes = require('../routes/auth.routes');
-   const userRoutes = require('../routes/user.routes');
-   const clientsRoutes = require('../routes/clients.routes');
-   const leavesRoutes = require('../routes/leave.routes');
-   const newsRoutes = require('../routes/news.routes');
-   const teamsRoutes = require('../routes/teams.routes');
-   const eventsRoutes = require('../routes/events.routes');
-   const smsRoutes = require('../routes/sms.routes');
-
-   app.use('/auth', authRoutes);
-   app.use('/user', userRoutes);
-   app.use('/clients', clientsRoutes);
-   app.use('/leave', leavesRoutes);
-   app.use('/news', newsRoutes);
-   app.use('/teams', teamsRoutes);
-   app.use('/events', eventsRoutes);
-   app.use('/sms', smsRoutes);
+   app.use('/auth', require('../routes/auth.routes'));
+   app.use('/user', require('../routes/user.routes'));
+   app.use('/clients', require('../routes/clients.routes'));
+   app.use('/leave', require('../routes/leave.routes'));
+   app.use('/news', require('../routes/news.routes'));
+   app.use('/teams', require('../routes/teams.routes'));
+   app.use('/events', require('../routes/events.routes'));
+   app.use('/sms', require('../routes/sms.routes'));
 } catch (err) {
    console.error('❌ Route import failed:', err.message);
 }
@@ -64,32 +55,43 @@ app.use((err, req, res, next) => {
 });
 
 /* =======================
-   MongoDB Connection + Serverless
+   MongoDB Connection
 ======================= */
-const startServer = async () => {
-   try {
-      await connectDB();
-      console.log('✅ MongoDB connected');
+let isConnected = false;
 
-      // Local dev server
-      if (process.env.NODE_ENV !== 'production') {
+const connectDB = async () => {
+   if (isConnected) return;
+   if (!process.env.MONGO_URL) throw new Error('MONGO_URL not defined');
+
+   await mongoose.connect(process.env.MONGO_URL); // Modern Mongoose v6+ connection
+   isConnected = true;
+   console.log('✅ MongoDB connected');
+};
+
+/* =======================
+   Local Development Server
+======================= */
+if (process.env.NODE_ENV !== 'production') {
+   connectDB()
+      .then(() => {
          const PORT = process.env.PORT || 4000;
          app.listen(PORT, () => {
             console.log(`✅ Server running locally on port ${PORT}`);
          });
-      }
-   } catch (err) {
-      console.error('❌ MongoDB connection error:', err.message);
-   }
-};
+      })
+      .catch(err => {
+         console.error('❌ MongoDB connection error:', err.message);
+      });
+}
 
-startServer();
+/* =======================
+   Serverless Export for Vercel
+======================= */
+const handler = serverless(app);
 
 module.exports = async (req, res) => {
    try {
-      // Ensure DB is connected before handling request in serverless
-      await connectDB();
-      const handler = serverless(app);
+      await connectDB(); // Ensure DB is connected for serverless
       return handler(req, res);
    } catch (err) {
       console.error('❌ Serverless Function Error:', err.message);

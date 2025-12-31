@@ -19,7 +19,7 @@ const app = express();
 /* =======================
    Database Connection
 ======================= */
-connectDB(); // ✅ normal app → OK to connect once
+connectDB(); // ✅ OK for both local + vercel
 
 /* =======================
    Middleware
@@ -32,7 +32,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
    Health Check
 ======================= */
 app.get('/', (req, res) => {
-    res.status(200).json({ message: 'Backend is running 🚀' });
+   res.status(200).json({ message: 'Backend is running 🚀' });
 });
 
 /* =======================
@@ -51,27 +51,30 @@ app.use('/sms', smsRoutes);
    404 Handler
 ======================= */
 app.use((req, res) => {
-    res.status(404).json({ message: 'Route not found' });
+   res.status(404).json({ message: 'Route not found' });
 });
 
 /* =======================
-   Global Error Handler
+   Error Handler
 ======================= */
 app.use((err, req, res, next) => {
-    console.error('❌ Error:', err.message);
-    res.status(err.statusCode || 500).json({
-        message: err.message || 'Internal Server Error'
-    });
+   console.error('❌ Error:', err);
+   res.status(err.statusCode || 500).json({
+      message: err.message || 'Internal Server Error',
+   });
 });
 
 /* =======================
-   Server Start
+   START SERVER (LOCAL ONLY)
 ======================= */
-const PORT = process.env.PORT || 4000;
+if (process.env.NODE_ENV !== 'production') {
+   const PORT = process.env.PORT || 4000;
+   app.listen(PORT, () => {
+      console.log(`✅ Server running locally on port ${PORT}`);
+   });
+}
 
-app.listen(PORT, () => {
-    console.log(`✅ Server running on port ${PORT}`);
-});
-
-
+/* =======================
+   EXPORT FOR VERCEL
+======================= */
 module.exports = app;

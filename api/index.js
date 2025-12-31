@@ -47,7 +47,7 @@ app.use((err, req, res, next) => {
    res.status(500).json({ message: err.message || 'Internal Server Error' });
 });
 
-/* Local Dev */
+/* Local Development Server */
 if (process.env.NODE_ENV !== 'production') {
    (async () => {
       try {
@@ -65,7 +65,7 @@ const handler = serverless(app);
 
 module.exports = async (req, res) => {
    try {
-      await connectDB(); // connect to MongoDB (cached)
+      await connectDB(); // ensure MongoDB connection
       return handler(req, res);
    } catch (err) {
       console.error('❌ Serverless function error:', err.message);

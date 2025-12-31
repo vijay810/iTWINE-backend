@@ -1,11 +1,25 @@
 require('dotenv').config();
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const serverless = require('serverless-http');
 const connectDB = require('../config/db');
 
+const userRoute = require('../routes/user.routes');
+const clientsRoutes = require('../routes/clients.routes');
+const authRoutes = require('../routes/auth.routes');
+const leavesRoutes = require('../routes/leave.routes');
+const newsRoutes = require('../routes/news.routes');
+const teamsRoutes = require('../routes/teams.routes');
+const eventsRoutes = require('../routes/events.routes');
+const smsRoutes = require('../routes/sms.routes');
+
 const app = express();
+
+/* =======================
+   Database Connection
+======================= */
+connectDB(); // ✅ OK for both local + vercel
 
 /* =======================
    Middleware
@@ -24,27 +38,14 @@ app.get('/', (req, res) => {
 /* =======================
    Routes
 ======================= */
-try {
-   const authRoutes = require('../routes/auth.routes');
-   const userRoute = require('../routes/user.routes');
-   const clientsRoutes = require('../routes/clients.routes');
-   const leavesRoutes = require('../routes/leave.routes');
-   const newsRoutes = require('../routes/news.routes');
-   const teamsRoutes = require('../routes/teams.routes');
-   const eventsRoutes = require('../routes/events.routes');
-   const smsRoutes = require('../routes/sms.routes');
-
-   app.use('/auth', authRoutes);
-   app.use('/user', userRoute);
-   app.use('/clients', clientsRoutes);
-   app.use('/leave', leavesRoutes);
-   app.use('/news', newsRoutes);
-   app.use('/teams', teamsRoutes);
-   app.use('/events', eventsRoutes);
-   app.use('/sms', smsRoutes);
-} catch (err) {
-   console.error('❌ Route import failed:', err.message);
-}
+app.use('/auth', authRoutes);
+app.use('/user', userRoute);
+app.use('/clients', clientsRoutes);
+app.use('/leave', leavesRoutes);
+app.use('/news', newsRoutes);
+app.use('/teams', teamsRoutes);
+app.use('/events', eventsRoutes);
+app.use('/sms', smsRoutes);
 
 /* =======================
    404 Handler
@@ -64,17 +65,16 @@ app.use((err, req, res, next) => {
 });
 
 /* =======================
-   Serverless Handler
+   START SERVER (LOCAL ONLY)
 ======================= */
-const handler = serverless(app);
+if (process.env.NODE_ENV !== 'production') {
+   const PORT = process.env.PORT || 4000;
+   app.listen(PORT, () => {
+      console.log(`✅ Server running locally on port ${PORT}`);
+   });
+}
 
-module.exports = async (req, res) => {
-   try {
-      // Connect to MongoDB if not connected
-      await connectDB();
-      return handler(req, res);
-   } catch (err) {
-      console.error('❌ Serverless Function Error:', err.message);
-      res.status(500).json({ message: 'Internal Server Error' });
-   }
-};
+/* =======================
+   EXPORT FOR VERCEL
+======================= */
+module.exports = app;

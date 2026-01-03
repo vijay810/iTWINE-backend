@@ -2,11 +2,10 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "api/index.js",
   "scripts": {
-    "start": "node index.js",
-    "server": "nodemon index.js",
-    "client": "npm start --prefix ./client"
+    "start": "node api/index.js",
+    "server": "nodemon api/index.js"
   },
   "keywords": [],
   "author": "",

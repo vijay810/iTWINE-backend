@@ -32,7 +32,7 @@ app.use('/auth', async (req, res, next) => {
   }
 }, require('../routes/auth.routes'));
 
-app.use('/auth', require('../routes/auth.routes'));
+// app.use('/auth', require('../routes/auth.routes'));
 app.use('/leave', require('../routes/leave.routes'));
 app.use('/clients', require('../routes/clients.routes'));
 app.use('/user', require('../routes/user.routes'));

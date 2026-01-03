@@ -1,40 +1,22 @@
 require('dotenv').config();
 const express = require('express');
-const cors = require('cors');
-const bodyParser = require('body-parser');
-const connectDB = require('./config/db');
-
-const userRoute = require('./routes/user.routes');
-const clientsRoutes = require('./routes/clients.routes');
-const authRoutes = require('./routes/auth.routes');
-const leavesRoutes = require('./routes/leave.routes');
-const newsRoutes = require('./routes/news.routes');
-const teamsRoutes = require('./routes/teams.routes');
-const eventsRoutes = require('./routes/events.routes');
-const smsRoutes = require('./routes/sms.routes');
+const mongoose = require('mongoose');
 
 const app = express();
+app.use(express.json());
 
-app.use(cors());
-app.use(bodyParser.json());
-
-app.use('/auth', authRoutes);
-app.use('/user', userRoute);
-app.use('/clients', clientsRoutes);
-app.use('/leave', leavesRoutes);
-app.use('/news', newsRoutes);
-app.use('/teams', teamsRoutes);
-app.use('/events', eventsRoutes);
-app.use('/sms', smsRoutes);
-
-(async () => {
+app.get('/', async (req, res) => {
   try {
-    await connectDB();
-    const PORT = process.env.PORT || 4000;
-    app.listen(PORT, () =>
-      console.log(`✅ Server running on port ${PORT}`)
-    );
+    if (mongoose.connection.readyState === 0) {
+      await mongoose.connect(process.env.MONGO_URL);
+    }
+    res.json({ local: 'server running', mongo: 'connected' });
   } catch (err) {
-    console.error('❌ Startup error:', err.message);
+    res.status(500).json({ error: err.message });
   }
-})();
+});
+
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, () => {
+  console.log(`✅ Local server running on port ${PORT}`);
+});

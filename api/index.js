@@ -1,9 +1,28 @@
 const express = require('express');
+const mongoose = require('mongoose');
 
 const app = express();
+app.use(express.json());
 
-app.get('/', (req, res) => {
-  res.status(200).json({ status: 'OK', msg: 'Vercel function alive ✅' });
+/* -------- HEALTH CHECK -------- */
+app.get('/', async (req, res) => {
+  try {
+    if (mongoose.connection.readyState === 0) {
+      await mongoose.connect(process.env.MONGO_URL);
+    }
+    res.status(200).json({
+      status: 'OK',
+      mongo: 'connected',
+      env: process.env.NODE_ENV
+    });
+  } catch (err) {
+    console.error('Mongo Error:', err.message);
+    res.status(500).json({ mongoError: err.message });
+  }
 });
+
+/* -------- ROUTES (ENABLE AFTER TEST PASSES) -------- */
+// const authRoutes = require('../routes/auth.routes');
+// app.use('/auth', authRoutes);
 
 module.exports = app;

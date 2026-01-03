@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express');
-const bodyParser = require('body-parser');
 const cors = require('cors');
+const bodyParser = require('body-parser');
 const serverless = require('serverless-http');
 const connectDB = require('../config/db');
 
@@ -19,56 +19,34 @@ const app = express();
 /* Middleware */
 app.use(cors());
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-
-/* Health Check */
-app.get('/', (req, res) => res.json({ message: 'Backend running 🚀' }));
 
 /* Routes */
-try {
-   app.use('/auth', authRoutes);
-   app.use('/user', userRoute);
-   app.use('/clients', clientsRoutes);
-   app.use('/leave', leavesRoutes);
-   app.use('/news', newsRoutes);
-   app.use('/teams', teamsRoutes);
-   app.use('/events', eventsRoutes);
-   app.use('/sms', smsRoutes);
-} catch (err) {
-   console.error('❌ Route import failed:', err.message);
+app.use('/auth', authRoutes);
+app.use('/user', userRoute);
+app.use('/clients', clientsRoutes);
+app.use('/leave', leavesRoutes);
+app.use('/news', newsRoutes);
+app.use('/teams', teamsRoutes);
+app.use('/events', eventsRoutes);
+app.use('/sms', smsRoutes);
+
+/* DB connection ONCE */
+let isConnected = false;
+async function dbConnect() {
+  if (!isConnected) {
+    await connectDB();
+    isConnected = true;
+  }
 }
 
-/* 404 */
-app.use((req, res) => res.status(404).json({ message: 'Route not found' }));
-
-/* Error handler */
-app.use((err, req, res, next) => {
-   console.error('❌ Error:', err);
-   res.status(500).json({ message: err.message || 'Internal Server Error' });
-});
-
-/* Local Development Server */
-if (process.env.NODE_ENV !== 'production') {
-   (async () => {
-      try {
-         await connectDB();
-         const PORT = process.env.PORT || 4000;
-         app.listen(PORT, () => console.log(`✅ Server running locally on port ${PORT}`));
-      } catch (err) {
-         console.error('❌ MongoDB connection error:', err.message);
-      }
-   })();
-}
-
-/* Serverless Export */
 const handler = serverless(app);
 
 module.exports = async (req, res) => {
-   try {
-      await connectDB(); // ensure MongoDB connection
-      return handler(req, res);
-   } catch (err) {
-      console.error('❌ Serverless function error:', err.message);
-      res.status(500).json({ message: 'Internal Server Error' });
-   }
+  try {
+    await dbConnect();
+    return handler(req, res);
+  } catch (err) {
+    console.error('❌ Serverless error:', err.message);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
 };

@@ -17,17 +17,14 @@
 // config/db.js
 const mongoose = require('mongoose');
 
-let cached = global.mongoose;
-if (!cached) cached = global.mongoose = { conn: null, promise: null };
-
-async function connectDB() {
-    if (cached.conn) return cached.conn;
-    if (!cached.promise) {
-        if (!process.env.MONGO_URL) throw new Error('MONGO_URL not defined');
-        cached.promise = mongoose.connect(process.env.MONGO_URL).then(mongoose => mongoose);
-    }
-    cached.conn = await cached.promise;
-    return cached.conn;
-}
+const connectDB = async () => {
+  try {
+    await mongoose.connect(process.env.MONGO_URL);
+    console.log('MongoDB connected');
+  } catch (error) {
+    console.error('Mongo error:', error.message);
+    throw error; // let Vercel handle
+  }
+};
 
 module.exports = connectDB;

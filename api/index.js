@@ -24,5 +24,5 @@ app.get('/', async (req, res) => {
 /* -------- ROUTES (ENABLE AFTER TEST PASSES) -------- */
 // const authRoutes = require('../routes/auth.routes');
 // app.use('/auth', authRoutes);
-
+app.use('/leave', require('../routes/leave.routes'));
 module.exports = app;

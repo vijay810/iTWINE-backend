@@ -23,15 +23,6 @@ app.get('/', async (req, res) => {
 
 /* -------- ROUTES (ENABLE AFTER TEST PASSES) -------- */
 
-app.use('/auth', async (req, res, next) => {
-  try {
-    await connectDB();
-    next();
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-}, require('../routes/auth.routes'));
-
 // app.use('/auth', require('../routes/auth.routes'));
 app.use('/leave', require('../routes/leave.routes'));
 app.use('/clients', require('../routes/clients.routes'));

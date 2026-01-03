@@ -9,5 +9,4 @@ let UsersSchema = new Schema({
     role: { type: Number, required: true },
 });
 
-// module.exports = mongoose.model('Users', UsersSchema)
-module.exports = mongoose.models.Users || mongoose.model('Users', UsersSchema);
+module.exports = mongoose.model('Users', UsersSchema)

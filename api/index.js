@@ -4,42 +4,41 @@ const connectDB = require('../config/db');
 
 const app = express();
 
-/* ---------- CORS (REQUIRED FOR AUTH) ---------- */
+/* -------- CORS (THIS FIXES AUTH) -------- */
 app.use(cors({
   origin: [
     'http://localhost:3000',
-    'https://your-frontend.vercel.app'
+    'https://your-frontend.vercel.app' // change this
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
 
+/* Handle preflight explicitly (important for Vercel) */
+app.options('*', cors());
+
 app.use(express.json());
 
-/* ---------- DB ---------- */
+/* -------- DB -------- */
 connectDB();
 
-/* ---------- HEALTH ---------- */
+/* -------- HEALTH -------- */
 app.get('/', (req, res) => {
-  res.status(200).json({
-    status: 'OK',
-    mongo: 'connected',
-    env: process.env.NODE_ENV
-  });
+  res.json({ status: 'OK' });
 });
 
-/* ---------- ROUTES ---------- */
+/* -------- ROUTES -------- */
 app.use('/auth', require('../routes/auth.routes'));
 app.use('/leave', require('../routes/leave.routes'));
 app.use('/clients', require('../routes/clients.routes'));
 app.use('/user', require('../routes/user.routes'));
 app.use('/news', require('../routes/news.routes'));
 
-/* ---------- ERROR HANDLER ---------- */
+/* -------- ERROR HANDLER -------- */
 app.use((err, req, res, next) => {
-  console.error(err);
-  res.status(500).json({ msg: 'Internal Server Error' });
+  console.error('🔥 ERROR:', err);
+  res.status(500).json({ msg: 'Internal server error' });
 });
 
 module.exports = app;

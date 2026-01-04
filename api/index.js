@@ -1,20 +1,7 @@
 const express = require('express');
-const cors = require('cors');
 const connectDB = require('../config/db');
 
 const app = express();
-
-/* ---------- CORS ---------- */
-app.use(cors({
-  origin: [
-    'http://localhost:3000',
-    'https://your-frontend.vercel.app' // change this
-  ],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
-}));
-
 app.use(express.json());
 
 /* ---------- DB CONNECT ---------- */

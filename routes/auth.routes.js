@@ -171,7 +171,7 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const Users = require('../Models/Users');
+const Users = require('../Models/Auth');
 const { v4: uuidv4 } = require('uuid');
 
 const router = express.Router();

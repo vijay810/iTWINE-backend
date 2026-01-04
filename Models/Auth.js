@@ -9,11 +9,4 @@ let UsersSchema = new Schema({
     role: { type: Number, required: true },
 });
 
-// module.exports = mongoose.model('Users', UsersSchema)
-
-module.exports = mongoose.model(
-  'AuthUser',
-  UsersSchema,
-  'auth_users' // 👈 DIFFERENT COLLECTION
-);
-
+module.exports = mongoose.model('Auth', UsersSchema)

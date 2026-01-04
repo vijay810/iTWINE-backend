@@ -78,7 +78,7 @@ router.post('/login', async (req, res) => {
 
         // Return JSON Web Token and role
         const payload = { user: { id: user.id, name: user.name, role: user.role } };
-        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '5m' });
+        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '15m' });
 
         res.json({ token, name: user.name, role: user.role, user_id: user.id });  // Make sure user_id is being returned
     } catch (err) {
@@ -134,16 +134,22 @@ router.get('/verify-token', (req, res) => {
     }
 
     jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+        // if (err) {
+        //     return res.status(401).json({ msg: 'Token expired' });
+        // }
         if (err) {
-            return res.status(401).json({ msg: 'Token expired' });
-        }
+  return res.status(401).json({ msg: 'Invalid or expired token' });
+}
+
 
         // Refresh token (sliding expiration)
         const newToken = jwt.sign(
             { user: decoded.user },
             process.env.JWT_SECRET,
-            { expiresIn: '5m' }
+            { expiresIn: '15m' }
         );
+     
+
 
         res.json({ msg: 'Token is valid', token: newToken });
     });
